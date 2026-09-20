@@ -1,0 +1,18 @@
+# Jupyter environment
+jupyter
+ipykernel
+
+# Data analysis and manipulation
+pandas
+numpy
+scikit-learn
+
+# Semantic similarity in the recommendation engine (optional - the engine
+# skips this signal and redistributes its weight if not installed)
+sentence-transformers
+
+# Agent -> local Ollama server
+requests
+
+# Web UI for the agent (05_web_ui/app.py)
+flask

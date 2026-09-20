@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourseLens | Learning Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <h2>CourseLens</h2>
+                <span>Learning Analytics</span>
+            </div>
+        </div>
+
+        <nav class="side-nav">
+            <p class="side-label">WORKSPACE</p>
+            <button class="nav-item active" data-view="dashboardView">
+                <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-view="explorerView">
+                <i class="fa-solid fa-magnifying-glass"></i><span>Course Explorer</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-note">
+            <div class="note-icon"><i class="fa-solid fa-database"></i></div>
+            <div>
+                <strong>Dataset connected</strong>
+                <span id="datasetInfo">404 courses · 23 fields</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">LEARNING PLATFORM ANALYTICS</p>
+                <h1 id="pageTitle">Course Dashboard</h1>
+                <p class="subtitle" id="pageSubtitle">Interactive analytics for course quality, providers, skills and formats.</p>
+            </div>
+            <div class="status-pill"><span></span> Live filters</div>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section id="dashboardView" class="view active-view">
+            <section class="filter-card dashboard-filter">
+                <div class="filter-heading">
+                    <div>
+                        <h2>Dashboard Filters</h2>
+                    </div>
+                    <button id="resetDashboardBtn" class="reset-btn"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                </div>
+                <div class="filters five">
+                    <div class="filter-group">
+                        <label>Organization</label>
+                        <select id="dashOrganization"><option value="">All organizations</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Difficulty</label>
+                        <select id="dashDifficulty"><option value="">All difficulties</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Course Type</label>
+                        <select id="dashType"><option value="">All types</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Duration</label>
+                        <select id="dashDuration"><option value="">All durations</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Minimum Rating</label>
+                        <select id="dashRating">
+                            <option value="">Any rating</option>
+                            <option value="4.5">4.5+</option>
+                            <option value="4.0">4.0+</option>
+                            <option value="3.5">3.5+</option>
+                            <option value="3.0">3.0+</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon blue"><i class="fa-solid fa-book-open"></i></div>
+                    <div><p>Total Courses</p><h3 id="totalCourses">—</h3></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon purple"><i class="fa-solid fa-building-columns"></i></div>
+                    <div><p>Organizations</p><h3 id="organizations">—</h3></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon amber"><i class="fa-solid fa-star"></i></div>
+                    <div><p>Average Rating</p><h3 id="avgRating">—</h3></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon green"><i class="fa-solid fa-tags"></i></div>
+                    <div><p>Avg. Skills / Course</p><h3 id="avgSkills">—</h3></div>
+                </div>
+                <div class="kpi-card review-kpi">
+                    <div class="kpi-icon rose"><i class="fa-solid fa-message"></i></div>
+                    <div><p>Total Reviews <span class="info-dot" title="Uses dataset values plus cached values fetched from course URLs.">i</span></p><h3 id="totalReviews">—</h3></div>
+                </div>
+            </section>
+
+            <section class="chart-grid">
+                <div class="chart-card">
+                    <div class="card-heading">
+                        <div><h2>Difficulty Distribution</h2><p>Courses in the current selection</p></div>
+                    </div>
+                    <div class="chart-wrap"><canvas id="difficultyChart"></canvas></div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="card-heading">
+                        <div><h2>Course Type</h2><p>Format mix for the current selection</p></div>
+                    </div>
+                    <div class="chart-wrap"><canvas id="typeChart"></canvas></div>
+                </div>
+
+                <div class="chart-card wide">
+                    <div class="card-heading">
+                        <div><h2>Top Organizations</h2><p>Providers by course count</p></div>
+                    </div>
+                    <div class="chart-wrap wide-chart"><canvas id="organizationChart"></canvas></div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="card-heading">
+                        <div><h2>Duration</h2><p>Course duration distribution</p></div>
+                    </div>
+                    <div class="chart-wrap"><canvas id="durationChart"></canvas></div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="card-heading">
+                        <div><h2>Rating Distribution</h2><p>Number of courses at each rating</p></div>
+                    </div>
+                    <div class="chart-wrap"><canvas id="ratingChart"></canvas></div>
+                </div>
+            </section>
+        </section>
+
+        <!-- COURSE EXPLORER -->
+         <section id="explorerView" class="view">
+    <section class="filter-card">
+        <div class="filter-heading">
+            <div>
+                <h2>Find Your Course</h2>
+            </div>
+            <button id="resetExplorerBtn" class="reset-btn">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+        </div>
+
+                
+
+                <div class="filters explorer-filters">
+                    <div class="filter-group search-group">
+                        <label>
+                            Search
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </label>
+                        <div class="search-box">
+                            <input id="searchInput" type="text" placeholder="Course, organization or skill...">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>Difficulty</label>
+                        <select id="difficultyFilter"><option value="">All difficulties</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Course Type</label>
+                        <select id="typeFilter"><option value="">All types</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Organization</label>
+                        <select id="organizationFilter"><option value="">All organizations</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Duration</label>
+                        <select id="durationFilter"><option value="">All durations</option></select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="table-card">
+                <div class="table-header">
+                    <div>
+                        <h2>Course Results</h2>
+                        <p id="resultCount">Loading courses...</p>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Organization</th>
+                                <th>Rating</th>
+                                <th>Difficulty</th>
+                                <th>Type</th>
+                                <th>Duration</th>
+                                <th>Skills</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="courseTable"></tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<div id="courseModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()" aria-label="Close">×</button>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+let charts = {};
+let dashboardTimer;
+let explorerTimer;
+
+const orgIconMap = {
+    "google": ["fa-brands fa-google", "Google"],
+    "microsoft": ["fa-brands fa-microsoft", "Microsoft"],
+    "ibm": ["fa-brands fa-ibm", "IBM"],
+    "amazon web services": ["fa-brands fa-aws", "AWS"],
+    "amazon": ["fa-brands fa-amazon", "Amazon"],
+    "meta": ["fa-brands fa-meta", "Meta"],
+    "wharton": ["fa-solid fa-building-columns", "Wharton"],
+    "university": ["fa-solid fa-building-columns", "University"],
+    "yale": ["fa-solid fa-building-columns", "Yale"],
+    "stanford": ["fa-solid fa-building-columns", "Stanford"],
+    "duke": ["fa-solid fa-building-columns", "Duke"],
+    "johns hopkins": ["fa-solid fa-building-columns", "JHU"]
+};
+
+const skillIconRules = [
+    [["python", "java", "programming", "coding", "javascript", "c++"], "fa-solid fa-code"],
+    [["sql", "database", "databases", "mysql"], "fa-solid fa-database"],
+    [["cloud", "aws", "azure", "google cloud"], "fa-solid fa-cloud"],
+    [["machine learning", "deep learning", "artificial intelligence", "ai"], "fa-solid fa-brain"],
+    [["data analysis", "data science", "statistics", "analytics"], "fa-solid fa-chart-line"],
+    [["cyber", "security", "cryptography", "network security"], "fa-solid fa-shield-halved"],
+    [["project management", "management", "leadership"], "fa-solid fa-diagram-project"],
+    [["excel", "spreadsheet"], "fa-solid fa-table-cells"],
+    [["communication", "writing"], "fa-solid fa-comments"],
+    [["design", "ux", "ui"], "fa-solid fa-pen-ruler"]
+];
+
+function iconForOrganization(name) {
+    const key = String(name || "").toLowerCase().trim();
+    for (const [match, data] of Object.entries(orgIconMap)) {
+        if (key === match || key.includes(match)) return data[0];
+    }
+    return "fa-solid fa-building";
+}
+
+function iconForSkill(name) {
+    const key = String(name || "").toLowerCase();
+    for (const [terms, icon] of skillIconRules) {
+        if (terms.some(term => key.includes(term))) return icon;
+    }
+    return "fa-solid fa-tag";
+}
+
+function formatNumber(value) {
+    if (value === null || value === undefined || value === "" || Number.isNaN(Number(value))) return "—";
+    return Number(value).toLocaleString("en-US", { maximumFractionDigits: 0 });
+}
+
+function makeOrReplaceChart(id, config) {
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart(document.getElementById(id), config);
+}
+
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 450 },
+    plugins: {
+        legend: {
+            labels: { usePointStyle: true, padding: 18, font: { size: 11 } }
+        }
+    }
+};
+
+function doughnutConfig(labels, values) {
+    return {
+        type: "doughnut",
+        data: { labels, datasets: [{ data: values, borderWidth: 2, hoverOffset: 5 }] },
+        options: { ...chartOptions, cutout: "66%" }
+    };
+}
+
+function barConfig(labels, values, horizontal = false) {
+    return {
+        type: "bar",
+        data: { labels, datasets: [{ label: "Courses", data: values, borderRadius: 7, borderWidth: 0 }] },
+        options: {
+            ...chartOptions,
+            indexAxis: horizontal ? "y" : "x",
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { beginAtZero: true, grid: { color: "#eef0f5" }, ticks: { font: { size: 10 } } }
+            }
+        }
+    };
+}
+
+function lineBarConfig(labels, values) {
+    return {
+        type: "bar",
+        data: { labels, datasets: [{ label: "Courses", data: values, borderRadius: 6, borderWidth: 0 }] },
+        options: {
+            ...chartOptions,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { beginAtZero: true, grid: { color: "#eef0f5" }, ticks: { font: { size: 10 } } }
+            }
+        }
+    };
+}
+
+function dashboardParams() {
+    return new URLSearchParams({
+        organization: document.getElementById("dashOrganization").value,
+        difficulty: document.getElementById("dashDifficulty").value,
+        type: document.getElementById("dashType").value,
+        duration: document.getElementById("dashDuration").value,
+        min_rating: document.getElementById("dashRating").value
+    });
+}
+
+async function loadSummary() {
+    const response = await fetch("/api/summary?" + dashboardParams().toString());
+    const data = await response.json();
+
+    document.getElementById("totalCourses").textContent = formatNumber(data.total_courses);
+    document.getElementById("organizations").textContent = formatNumber(data.organizations);
+    document.getElementById("avgRating").textContent = data.avg_rating ?? "—";
+    document.getElementById("avgSkills").textContent = data.avg_skills ?? "—";
+    document.getElementById("totalReviews").textContent = formatNumber(data.total_reviews);
+
+    makeOrReplaceChart("difficultyChart",
+        doughnutConfig(Object.keys(data.difficulty), Object.values(data.difficulty)));
+
+    makeOrReplaceChart("typeChart",
+        doughnutConfig(Object.keys(data.type), Object.values(data.type)));
+
+    const orgLabels = Object.keys(data.organizations_top).reverse();
+    const orgValues = Object.values(data.organizations_top).reverse();
+    makeOrReplaceChart("organizationChart", barConfig(orgLabels, orgValues, true));
+
+    makeOrReplaceChart("durationChart",
+        doughnutConfig(Object.keys(data.duration), Object.values(data.duration)));
+
+    const ratingLabels = Object.keys(data.ratings_distribution);
+    const ratingValues = Object.values(data.ratings_distribution);
+    makeOrReplaceChart("ratingChart", lineBarConfig(ratingLabels, ratingValues));
+}
+
+function populateSelect(id, values) {
+    const select = document.getElementById(id);
+    const first = select.options[0];
+    select.innerHTML = "";
+    select.appendChild(first);
+    values.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+    });
+}
+
+async function loadFilters() {
+    const response = await fetch("/api/filters");
+    const data = await response.json();
+
+    ["dashDifficulty", "difficultyFilter"].forEach(id => populateSelect(id, data.difficulty));
+    ["dashType", "typeFilter"].forEach(id => populateSelect(id, data.type));
+    ["dashOrganization", "organizationFilter"].forEach(id => populateSelect(id, data.organization));
+    ["dashDuration", "durationFilter"].forEach(id => populateSelect(id, data.duration));
+}
+
+function badgeClass(value) {
+    return String(value || "Unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+
+async function loadCourses() {
+    const params = new URLSearchParams({
+        search: document.getElementById("searchInput").value,
+        difficulty: document.getElementById("difficultyFilter").value,
+        type: document.getElementById("typeFilter").value,
+        organization: document.getElementById("organizationFilter").value,
+        duration: document.getElementById("durationFilter").value
+    });
+
+    const response = await fetch("/api/courses?" + params.toString());
+    const data = await response.json();
+
+    document.getElementById("resultCount").textContent =
+        `${formatNumber(data.count)} matching course${data.count === 1 ? "" : "s"}`;
+
+    const tbody = document.getElementById("courseTable");
+    tbody.innerHTML = "";
+
+    if (!data.courses.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty">No courses match the selected filters.</td></tr>`;
+        return;
+    }
+
+    data.courses.forEach(course => {
+        const tr = document.createElement("tr");
+        const rating = course.ratings == null ? "—" : Number(course.ratings).toFixed(1);
+        const skills = course.skill_count == null ? "—" : formatNumber(course.skill_count);
+        const org = course.organization || "Unknown";
+        const orgIcon = iconForOrganization(org);
+
+        tr.innerHTML = `
+            <td>
+                <div class="course-title">${escapeHtml(course.title || "Untitled")}</div>
+                <div class="course-id">${escapeHtml(course.course_id || "")}</div>
+            </td>
+            <td>
+                <div class="org-cell">
+                    <span class="org-logo"><i class="${orgIcon}"></i></span>
+                    <span>${escapeHtml(org)}</span>
+                </div>
+            </td>
+            <td><span class="rating"><i class="fa-solid fa-star"></i> ${rating}</span></td>
+            <td><span class="badge ${badgeClass(course.difficulty)}">${escapeHtml(course.difficulty || "Unknown")}</span></td>
+            <td>${escapeHtml(course.type || "Unknown")}</td>
+            <td>${escapeHtml(course.duration || "Unknown")}</td>
+            <td><span class="skill-count"><i class="fa-solid fa-tags"></i> ${skills}</span></td>
+            <td><button class="view-btn" onclick="viewCourse('${encodeURIComponent(course.course_id)}')">View</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function skillTags(skills) {
+    if (!skills) return `<span class="muted">Not available</span>`;
+    return String(skills).split(",").map(s => s.trim()).filter(Boolean).map(skill =>
+        `<span class="skill-tag"><i class="${iconForSkill(skill)}"></i>${escapeHtml(skill)}</span>`
+    ).join("");
+}
+
+async function viewCourse(encodedId) {
+    const courseId = decodeURIComponent(encodedId);
+    const response = await fetch("/api/course/" + encodeURIComponent(courseId));
+    const course = await response.json();
+
+    if (!response.ok) {
+        showToast("Course could not be loaded.");
+        return;
+    }
+
+    const description = course.course_description_clean || course.course_description || "Not available";
+    const org = course.organization || "Unknown organization";
+
+    document.getElementById("modalBody").innerHTML = `
+        <div class="modal-brand">
+            <span class="modal-org-logo"><i class="${iconForOrganization(org)}"></i></span>
+            <div>
+                <p class="eyebrow">COURSE DETAILS</p>
+                <p class="modal-org">${escapeHtml(org)}</p>
+            </div>
+        </div>
+        <h2 class="modal-title">${escapeHtml(course.title || "Untitled")}</h2>
+
+        <div class="detail-grid">
+            <div><span>Rating</span><strong><i class="fa-solid fa-star"></i> ${course.ratings ?? "—"}</strong></div>
+            <div><span>Difficulty</span><strong>${escapeHtml(course.difficulty || "—")}</strong></div>
+            <div><span>Type</span><strong>${escapeHtml(course.type || "—")}</strong></div>
+            <div><span>Duration</span><strong>${escapeHtml(course.duration || "—")}</strong></div>
+            <div><span>Skills</span><strong>${formatNumber(course.skill_count)}</strong></div>
+        </div>
+
+        <div class="detail-section">
+            <h3>Description</h3>
+            <p>${escapeHtml(description)}</p>
+        </div>
+
+        <div class="detail-section">
+            <h3>Skills</h3>
+            <div class="skill-list">${skillTags(course.skills)}</div>
+        </div>
+
+        ${course.course_url ? `<a class="course-link" href="${escapeHtml(course.course_url)}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open course</a>` : ""}
+    `;
+
+    document.getElementById("courseModal").classList.remove("hidden");
+}
+
+function closeModal() {
+    document.getElementById("courseModal").classList.add("hidden");
+}
+
+function resetDashboard() {
+    ["dashOrganization", "dashDifficulty", "dashType", "dashDuration", "dashRating"]
+        .forEach(id => document.getElementById(id).value = "");
+    loadSummary();
+}
+
+function resetExplorer() {
+    document.getElementById("searchInput").value = "";
+    ["difficultyFilter", "typeFilter", "organizationFilter", "durationFilter"]
+        .forEach(id => document.getElementById(id).value = "");
+    loadCourses();
+}
+
+function showView(viewId) {
+    document.querySelectorAll(".view").forEach(view => view.classList.remove("active-view"));
+    document.getElementById(viewId).classList.add("active-view");
+
+    document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+    document.querySelector(`.nav-item[data-view="${viewId}"]`).classList.add("active");
+
+    const dashboard = viewId === "dashboardView";
+    document.getElementById("pageTitle").textContent = dashboard ? "Course Dashboard" : "Course Explorer";
+    document.getElementById("pageSubtitle").textContent = dashboard
+        ? "Interactive analytics for course quality, providers, skills and formats."
+        : "";
+
+    if (!dashboard) loadCourses();
+}
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    setTimeout(() => toast.classList.add("hidden"), 3500);
+}
+
+
+document.querySelectorAll(".nav-item").forEach(button => {
+    button.addEventListener("click", () => showView(button.dataset.view));
+});
+
+["dashOrganization", "dashDifficulty", "dashType", "dashDuration", "dashRating"].forEach(id => {
+    document.getElementById(id).addEventListener("change", () => {
+        clearTimeout(dashboardTimer);
+        dashboardTimer = setTimeout(loadSummary, 120);
+    });
+});
+
+document.getElementById("resetDashboardBtn").addEventListener("click", resetDashboard);
+document.getElementById("resetExplorerBtn").addEventListener("click", resetExplorer);
+
+document.getElementById("searchInput").addEventListener("input", () => {
+    clearTimeout(explorerTimer);
+    explorerTimer = setTimeout(loadCourses, 250);
+});
+
+["difficultyFilter", "typeFilter", "organizationFilter", "durationFilter"].forEach(id => {
+    document.getElementById(id).addEventListener("change", loadCourses);
+});
+
+window.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeModal();
+});
+
+async function init() {
+    await loadFilters();
+    await Promise.all([loadSummary(), loadCourses()]);
+}
+
+init();
+</script>
+</body>
+</html>
