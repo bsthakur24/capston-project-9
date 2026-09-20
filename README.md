@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI-Powered Personalized Learning Recommendation System
 
 A recommendation system for corporate training departments. Given an employee's
@@ -210,3 +211,6 @@ Run the notebooks in this order, from the `capstoneProject` root (with `data/` s
 4. `04_agent_workflow.ipynb` — with Ollama running, use the interactive
    `chat()` cell at the end, or the two scripted scenarios earlier in the
    notebook, to talk to a real learner conversation instead of a demo.
+=======
+# capston-project-9-
+>>>>>>> 1bdb5c600706831e555c00ac81197c6cd489f8e8
