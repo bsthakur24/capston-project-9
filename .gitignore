@@ -1,1 +1,4 @@
 .DS_Store
+data/raw/05_person_skills.csv
+data/cleaned/person_skills_cleaned.csv
+data/recommendation_ready/user_profiles.csv
